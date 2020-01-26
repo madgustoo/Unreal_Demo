@@ -22,13 +22,14 @@ void UOpenDoor::BeginPlay()
 
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
 	CurrentYaw = InitialYaw;
-	TargetYaw += InitialYaw; // TargetYaw = InitialYaw + 90.f;
+	OpenAngle += InitialYaw; // OpenAngle = InitialYaw + 90.f;
 
 	if (!PressurePlate)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s has the open door component, but no pressureplate attached!"), *GetOwner()->GetName());
 	}
 
+	// Set it on runtime, because our player actor only exists when we're playing the game
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
@@ -42,8 +43,14 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpens)) 
 	{
 		OpenDoor(DeltaTime);
-	} else {
-		CloseDoor(DeltaTime);
+		DoorLastOpened = GetWorld()->GetTimeSeconds();
+	} else 
+	{
+		// Timer
+		if (GetWorld()->GetTimeSeconds() - DoorLastOpened > DoorCloseDelay)
+		{
+			CloseDoor(DeltaTime);
+		} 
 	}
 }
 
@@ -52,7 +59,7 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 	// Linear interpolation (LERP) involves estimating a new value by connecting two adjacent known values with a straight line
 	// Point de debart -> Point d'arriver : estimer les points entre les deux 
 	// DeltaTime * 1.f is the speed 
-	CurrentYaw = FMath::Lerp(CurrentYaw, TargetYaw, DeltaTime * 0.5f);
+	CurrentYaw = FMath::Lerp(CurrentYaw, OpenAngle, DeltaTime * DoorOpenSpeed);
 
 	/** Yaw is rotation around the up axis (around Z axis), Running in circles 0=East, +North, -South. */
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
@@ -62,7 +69,7 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 
 void UOpenDoor::CloseDoor(float DeltaTime)
 {
-	CurrentYaw = FMath::Lerp(CurrentYaw, InitialYaw, DeltaTime * 1.f);
+	CurrentYaw = FMath::Lerp(CurrentYaw, InitialYaw, DeltaTime * DoorCloseSpeed);
 
 	/** Yaw is rotation around the up axis (around Z axis), Running in circles 0=East, +North, -South. */
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
