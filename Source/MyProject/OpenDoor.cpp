@@ -42,6 +42,8 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpens)) 
 	{
 		OpenDoor(DeltaTime);
+	} else {
+		CloseDoor(DeltaTime);
 	}
 }
 
@@ -49,8 +51,18 @@ void UOpenDoor::OpenDoor(float DeltaTime)
 {
 	// Linear interpolation (LERP) involves estimating a new value by connecting two adjacent known values with a straight line
 	// Point de debart -> Point d'arriver : estimer les points entre les deux 
-	// 0.2f is the speed 
-	CurrentYaw = FMath::Lerp(CurrentYaw, TargetYaw, DeltaTime * 1.f);
+	// DeltaTime * 1.f is the speed 
+	CurrentYaw = FMath::Lerp(CurrentYaw, TargetYaw, DeltaTime * 0.5f);
+
+	/** Yaw is rotation around the up axis (around Z axis), Running in circles 0=East, +North, -South. */
+	FRotator DoorRotation = GetOwner()->GetActorRotation();
+	DoorRotation.Yaw = CurrentYaw;
+	GetOwner()->SetActorRotation(DoorRotation);
+}
+
+void UOpenDoor::CloseDoor(float DeltaTime)
+{
+	CurrentYaw = FMath::Lerp(CurrentYaw, InitialYaw, DeltaTime * 1.f);
 
 	/** Yaw is rotation around the up axis (around Z axis), Running in circles 0=East, +North, -South. */
 	FRotator DoorRotation = GetOwner()->GetActorRotation();
