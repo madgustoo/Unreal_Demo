@@ -1,8 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "Engine/World.h"
 #include "OpenDoor.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
@@ -10,8 +12,6 @@ UOpenDoor::UOpenDoor()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -22,8 +22,14 @@ void UOpenDoor::BeginPlay()
 
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
 	CurrentYaw = InitialYaw;
-	// TargetYaw = InitialYaw + 90.f;
-	TargetYaw += InitialYaw;
+	TargetYaw += InitialYaw; // TargetYaw = InitialYaw + 90.f;
+
+	if (!PressurePlate)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s has the open door component, but no pressureplate attached!"), *GetOwner()->GetName());
+	}
+
+	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 
@@ -32,16 +38,15 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	// CurrentRotation.Yaw = 90.f;
-	// FRotator OpenDoor = new FRotator(0.f, 90.f, 90.f);
-	// Initialization syntax in C++ is a mess
-	// FRotator OpenDoor(0.f, 90.f, 90.f);
-	// GetOwner()->SetActorRotation(OpenDoor);
+	// if PressurePlate not null
+	if (PressurePlate && PressurePlate->IsOverlappingActor(ActorThatOpens)) 
+	{
+		OpenDoor(DeltaTime);
+	}
+}
 
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *GetOwner()->GetActorRotation().ToString());
-	UE_LOG(LogTemp, Warning, TEXT("%f"), GetOwner()->GetActorRotation().Yaw);
-
+void UOpenDoor::OpenDoor(float DeltaTime) 
+{
 	// Linear interpolation (LERP) involves estimating a new value by connecting two adjacent known values with a straight line
 	// Point de debart -> Point d'arriver : estimer les points entre les deux 
 	// 0.2f is the speed 

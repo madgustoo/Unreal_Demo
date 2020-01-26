@@ -29,7 +29,6 @@ void UWorldPosition::BeginPlay()
 	// For example, %f doesn't require 
 	UE_LOG(LogTemp, Warning, TEXT("Object name: %s"), *ObjectName);
 	UE_LOG(LogTemp, Warning, TEXT("Object position: %s"), *ObjectPosition);
-	// ...
 }
 
 
@@ -37,7 +36,5 @@ void UWorldPosition::BeginPlay()
 void UWorldPosition::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
 }
 
